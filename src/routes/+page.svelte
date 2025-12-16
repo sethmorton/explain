@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	let url = $state('');
 	let copied = $state(false);
+	let shareableCopied = $state(false);
 
 	const exampleUrl = 'https://www.biorxiv.org/content/10.1101/213827';
 
@@ -24,6 +26,18 @@
 	function tryExample() {
 		url = exampleUrl;
 	}
+
+	const shareableLink = $derived.by(() => {
+		const cleanUrl = exampleUrl.replace(/^https?:\/\//, '');
+		const baseUrl = $page.url.origin;
+		return `${baseUrl}/${cleanUrl}`;
+	});
+
+	async function copyShareableLink() {
+		await navigator.clipboard.writeText(shareableLink);
+		shareableCopied = true;
+		setTimeout(() => (shareableCopied = false), 2000);
+	}
 </script>
 
 <main class="min-h-screen bg-background text-foreground font-sans">
@@ -33,7 +47,7 @@
 				Read scientific papers without the jargon
 			</h1>
 			<p class="text-lg text-muted-foreground">
-				Paste a bioRxiv link and get the same paper, same voice, same meaning — just clearer.
+				Get plain-English explanations that show what changed, why it matters, and what it enables.
 				Technical terms become hoverable definitions.
 			</p>
 		</header>
@@ -58,7 +72,7 @@
 					type="url"
 					bind:value={url}
 					placeholder="https://www.biorxiv.org/content/10.1101/..."
-					class="w-full rounded-lg border border-border bg-input px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+					class="w-full rounded-lg border border-border bg-input px-4 py-3 text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring overflow-x-auto"
 				/>
 				<button
 					type="submit"
@@ -86,11 +100,29 @@
 			</button>
 		</div>
 
+		<div class="mt-12 rounded-lg border border-border bg-muted/30 px-4 sm:px-6 py-5">
+			<h2 class="mb-3 text-lg font-medium text-foreground">Share links directly</h2>
+			<p class="mb-4 text-sm text-muted-foreground">
+				You don't need to visit this page first. Just prepend this site's URL to any bioRxiv URL, and
+				it will automatically open the explained version. Perfect for sharing accessible papers with
+				colleagues.
+			</p>
+			<div class="mb-4 rounded-md bg-background px-3 py-2 font-mono text-xs text-foreground break-all overflow-x-auto min-w-0">
+				{shareableLink}
+			</div>
+			<button
+				onclick={copyShareableLink}
+				class="text-sm text-muted-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors hover:text-foreground"
+			>
+				{shareableCopied ? 'Copied!' : 'Copy shareable link'}
+			</button>
+		</div>
+
 		<footer class="mt-24 text-center text-sm text-muted-foreground">
 			<p>
 				Numbers and uncertainty stay accurate.
 				<br />
-				It's the same paper — just without the barrier.
+				Understand what changed, why it matters, and what it enables.
 			</p>
 		</footer>
 	</div>

@@ -6,18 +6,20 @@ const openai = new OpenAI({
 	apiKey: OPENAI_API_KEY
 });
 
-const SYSTEM_PROMPT = `You are rewriting a scientific paper paragraph.
+const SYSTEM_PROMPT = `You are rewriting a scientific paper paragraph into plain English.
 
-Imagine the original researcher is rewriting their own work for a smart friend who isn't in the field. The voice stays the same - same structure, same meaning. You're just removing jargon and making it clear.
+Your goal is to explain: what changed (what the research found or did), why it matters (the significance and importance), and what it enables (implications, applications, or future possibilities).
+
+Focus on making the research's impact and implications clear to someone who isn't in the field, while maintaining accuracy and staying true to the original findings.
 
 Rules:
-- Keep the exact same meaning and structure
 - Keep all numbers, units, and statistics exactly as written
-- Keep uncertainty language (suggests, may, consistent with, appears to)
+- Keep uncertainty language (suggests, may, consistent with, appears to) - don't make claims stronger than the original
 - Don't add interpretations or conclusions not in the original
 - Don't turn correlations into causations
 - Some technical terms MUST stay in the text (like gene names, protein names, methods) - keep these but mark them for definition
-- Preserve the researcher's voice and perspective
+- Structure your explanation around what changed, why it matters, and what it enables
+- Use clear, accessible language that explains the significance and implications
 
 For the terms list: identify 2-5 technical terms that APPEAR IN YOUR REWRITTEN TEXT that a non-scientist would benefit from having explained. The term field must be an exact substring of your rewritten paragraph.`;
 
@@ -54,13 +56,13 @@ export async function rewriteParagraph(textHtml: string): Promise<RewriteResult>
 				{ role: 'system', content: SYSTEM_PROMPT },
 				{
 					role: 'user',
-					content: `Please rewrite this paragraph in plain English and identify key terms:
+					content: `Please rewrite this paragraph in plain English, focusing on what changed, why it matters, and what it enables. Identify key terms:
 
 "${plainText}"
 
 Respond in JSON format:
 {
-  "plain": "the rewritten paragraph",
+  "plain": "the rewritten paragraph explaining what changed, why it matters, and what it enables",
   "terms": [
     { "term": "original term", "simple": "plain English explanation" }
   ]
