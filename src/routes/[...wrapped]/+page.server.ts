@@ -60,39 +60,9 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		error(500, 'Could not parse paper content. The paper structure may not be supported.');
 	}
 
-	// Rewrite all blocks with OpenAI
-	const { plainBlocks, terms } = await rewriteAllBlocks(paperData.blocks);
-
-	// Construct the Paper object
-	const paper: Paper = {
-		id: paperId,
-		sourceUrl: bioRxivUrl,
-		title: paperData.title,
-		authors: paperData.authors,
-		blocks: paperData.blocks,
-		plain: {
-			blocks: plainBlocks,
-			terms
-		}
-	};
-
-	// Save to cache
-	await db
-		.insert(papers)
-		.values({
-			id: paperId,
-			sourceUrl: bioRxivUrl,
-			data: paper
-		})
-		.onConflictDoUpdate({
-			target: papers.id,
-			set: {
-				data: paper
-			}
-		});
-
+	// Return processing state - client will handle SSE streaming
 	return {
-		status: 'ready' as const,
-		paper
+		status: 'processing' as const,
+		bioRxivUrl
 	};
 };

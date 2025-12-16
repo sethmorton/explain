@@ -8,6 +8,48 @@ function escapeRegex(str: string): string {
 }
 
 /**
+ * Format abstract section labels with line breaks and bold text
+ * Handles patterns like "Significance:", "Aim:", "Approach:", "Results:", "Conclusions:"
+ */
+export function formatAbstractLabels(text: string): string {
+	// Common abstract section labels (case-insensitive)
+	const labels = [
+		'Significance',
+		'Aim',
+		'Aims',
+		'Approach',
+		'Methods',
+		'Method',
+		'Results',
+		'Result',
+		'Conclusions',
+		'Conclusion',
+		'Background',
+		'Objective',
+		'Objectives',
+		'Purpose',
+		'Design',
+		'Findings',
+		'Interpretation',
+		'Funding'
+	];
+
+	// Create regex pattern to match any label followed by colon
+	const pattern = new RegExp(`(${labels.join('|')})\\s*:`, 'gi');
+
+	let isFirst = true;
+	return text.replace(pattern, (match, label) => {
+		const formatted = `<strong>${label}:</strong>`;
+		if (isFirst) {
+			isFirst = false;
+			return formatted;
+		}
+		// Add line break before subsequent labels
+		return `<br><br>${formatted}`;
+	});
+}
+
+/**
  * Highlights terms in text by wrapping them in clickable buttons
  * Uses longest-first matching to avoid partial matches
  */
@@ -17,9 +59,7 @@ export function highlightTerms(text: string, terms: Record<string, Term>): strin
 	}
 
 	// Sort terms by length (longest first) to avoid partial matches
-	const sortedEntries = Object.entries(terms).sort(
-		([, a], [, b]) => b.term.length - a.term.length
-	);
+	const sortedEntries = Object.entries(terms).sort(([, a], [, b]) => b.term.length - a.term.length);
 
 	// Create a map of placeholder tokens to term data
 	const placeholders: Map<string, { termId: string; originalMatch: string }> = new Map();
@@ -61,4 +101,3 @@ export function getTermIdsInText(text: string, terms: Record<string, Term>): str
 
 	return foundTermIds;
 }
-

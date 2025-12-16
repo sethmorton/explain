@@ -29,7 +29,9 @@ interface BioRxivApiResponse {
  */
 export function extractDoiFromUrl(url: string): string | null {
 	const match = url.match(/10\.\d{4,}\/[^\s/?#]+/);
-	return match ? match[0] : null;
+	if (!match) return null;
+	// Strip version suffix (e.g., v1, v2) from the end
+	return match[0].replace(/v\d+$/, '');
 }
 
 /**

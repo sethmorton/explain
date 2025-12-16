@@ -51,7 +51,7 @@ export async function rewriteParagraph(textHtml: string): Promise<RewriteResult>
 
 	try {
 		const response = await openai.chat.completions.create({
-			model: 'gpt-4o-mini', // Cheapest GPT-4 class model
+			model: 'gpt-5-mini', // Cheapest GPT-4 class model
 			messages: [
 				{ role: 'system', content: SYSTEM_PROMPT },
 				{
@@ -69,8 +69,7 @@ Respond in JSON format:
 }`
 				}
 			],
-			response_format: { type: 'json_object' },
-			temperature: 0.3
+			response_format: { type: 'json_object' }
 		});
 
 		const content = response.choices[0]?.message?.content;
@@ -94,11 +93,17 @@ Respond in JSON format:
  * Rewrite all paragraphs in a paper's blocks
  */
 export async function rewriteAllBlocks(
-	blocks: Block[]
+	blocks: Block[],
+	onProgress?: (current: number, total: number) => void
 ): Promise<{ plainBlocks: PlainBlock[]; terms: Record<string, Term> }> {
 	const plainBlocks: PlainBlock[] = [];
 	const allTerms: Record<string, Term> = {};
 	let termCounter = 0;
+
+	// Count paragraphs for progress tracking
+	const paragraphBlocks = blocks.filter((b) => b.kind === 'para');
+	const totalParagraphs = paragraphBlocks.length;
+	let processedParagraphs = 0;
 
 	for (const block of blocks) {
 		if (block.kind === 'heading') {
@@ -141,6 +146,12 @@ export async function rewriteAllBlocks(
 				text: result.plain,
 				term_ids: termIds
 			});
+
+			// Report progress
+			processedParagraphs++;
+			if (onProgress) {
+				onProgress(processedParagraphs, totalParagraphs);
+			}
 		}
 	}
 
